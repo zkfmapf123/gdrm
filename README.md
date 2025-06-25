@@ -26,8 +26,6 @@ export AWS_SECRET_ACCESS_KEY=your_secret_key
 export AWS_REGION=ap-northeast-2
 ```
 
-3. **IAM 역할** (EC2, Lambda 등에서 사용)
-
 ## 📖 사용 예시
 
 ### 1. 기본 구조체 정의
