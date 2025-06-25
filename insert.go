@@ -14,11 +14,11 @@ var (
 )
 
 type TableParmas struct {
-	tableName string
+	TableName string
 
-	primarykey  string // if already exists not used
-	sortedKey   string // if already exists not used
-	billingMode bool   // true : on-demain , false : provisioned
+	Primarykey  string // if already exists not used
+	SortedKey   string // if already exists not used
+	BillingMode bool   // true : on-demain , false : provisioned
 }
 
 func Insert(params TableParmas, data map[string]any) error {
@@ -27,11 +27,11 @@ func Insert(params TableParmas, data map[string]any) error {
 	attempt := 1
 	for attempt = 1; attempt < RETRY_COUNT; attempt++ {
 
-		if !isExistTableName(params.tableName) {
+		if !isExistTableName(params.TableName) {
 			createTable(&orm, params)
 		}
 
-		if isActiveDynamoTable(params.tableName) {
+		if isActiveDynamoTable(params.TableName) {
 			break
 		}
 
@@ -45,7 +45,7 @@ func Insert(params TableParmas, data map[string]any) error {
 	}
 
 	_, err = orm.db.PutItem(context.Background(), &dynamodb.PutItemInput{
-		TableName: &params.tableName,
+		TableName: &params.TableName,
 		Item:      item,
 	})
 
@@ -56,24 +56,24 @@ func createTable(orm *dynamoGORMParmas, params TableParmas) error {
 
 	attrDefinition := []types.AttributeDefinition{
 		{
-			AttributeName: wrapString(params.primarykey),
+			AttributeName: wrapString(params.Primarykey),
 			AttributeType: types.ScalarAttributeTypeS,
 		},
 	}
 
 	keySchema := []types.KeySchemaElement{
 		{
-			AttributeName: wrapString(params.primarykey),
+			AttributeName: wrapString(params.Primarykey),
 			KeyType:       types.KeyTypeHash,
 		},
 	}
 
 	// TOBE. 정렬 키는 추후 구성 예정
 	_, err := orm.db.CreateTable(context.Background(), &dynamodb.CreateTableInput{
-		TableName:            wrapString(params.tableName),
+		TableName:            wrapString(params.TableName),
 		AttributeDefinitions: attrDefinition,
 		KeySchema:            keySchema,
-		BillingMode:          getBillingMode(params.billingMode),
+		BillingMode:          getBillingMode(params.BillingMode),
 	})
 
 	return err

@@ -1,0 +1,111 @@
+name: Auto Deploy with Tag
+
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - 'LICENSE'
+
+jobs:
+  auto-tag-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Setup Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.24.3'
+
+    - name: Get latest tag
+      id: get-latest-tag
+      run: |
+        # 최신 태그 가져오기
+        LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+        echo "Latest tag: $LATEST_TAG"
+        
+        # 태그에서 버전 번호 추출 (v1.2.3 형식)
+        if [[ $LATEST_TAG =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+          MAJOR=${BASH_REMATCH[1]}
+          MINOR=${BASH_REMATCH[2]}
+          PATCH=${BASH_REMATCH[3]}
+        else
+          MAJOR=0
+          MINOR=0
+          PATCH=0
+        fi
+        
+        # 패치 버전 증가
+        NEW_PATCH=$((PATCH + 1))
+        NEW_TAG="v${MAJOR}.${MINOR}.${NEW_PATCH}"
+        
+        echo "New tag: $NEW_TAG"
+        echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+        echo "major=$MAJOR" >> $GITHUB_OUTPUT
+        echo "minor=$MINOR" >> $GITHUB_OUTPUT
+        echo "patch=$NEW_PATCH" >> $GITHUB_OUTPUT
+
+    - name: Create and push tag
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # 새 태그 생성
+        git tag ${{ steps.get-latest-tag.outputs.new_tag }}
+        
+        # 태그 푸시
+        git push origin ${{ steps.get-latest-tag.outputs.new_tag }}
+
+    - name: Build
+      run: |
+        go build -o dynamoGORM ./...
+
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.get-latest-tag.outputs.new_tag }}
+        release_name: Release ${{ steps.get-latest-tag.outputs.new_tag }}
+        body: |
+          ## 🚀 DynamoGORM ${{ steps.get-latest-tag.outputs.new_tag }}
+          
+          ### 주요 변경사항
+          - 자동 배포 및 태그 생성
+          - 버전: ${{ steps.get-latest-tag.outputs.new_tag }}
+          
+          ### 설치 방법
+          ```bash
+          go get github.com/zkfmapf123/dynamoGORM@${{ steps.get-latest-tag.outputs.new_tag }}
+          ```
+          
+          ### 변경사항
+          - 자동화된 배포 프로세스
+          - 테스트 통과 확인
+          - 안정적인 태그 관리
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./dynamoGORM
+        asset_name: dynamoGORM-${{ steps.get-latest-tag.outputs.new_tag }}-linux-amd64
+        asset_content_type: application/octet-stream
+
+    - name: Notify deployment
+      run: |
+        echo "✅ 배포 완료!"
+        echo "📦 새 태그: ${{ steps.get-latest-tag.outputs.new_tag }}"
+        echo "🔗 릴리즈: https://github.com/${{ github.repository }}/releases/tag/${{ steps.get-latest-tag.outputs.new_tag }}"

@@ -2,10 +2,30 @@
 
 DynamoGORM은 Go 언어로 작성된 DynamoDB ORM 라이브러리입니다. AWS SDK v2를 기반으로 하며, 제네릭을 활용한 타입 안전한 데이터 조작을 제공합니다.
 
+## ✨ 주요 기능
+
+- 🚀 **제네릭 기반 타입 안전성**: 컴파일 타임에 타입 검증
+- 🔄 **자동 테이블 생성**: 테이블이 없을 경우 자동으로 생성
+- 📊 **다양한 데이터 타입 지원**: String, Number, Boolean, List, Map 등
+- 🏷️ **JSON 태그 지원**: 구조체 필드의 JSON 태그를 DynamoDB 키로 매핑
+- 🔁 **재시도 로직**: 테이블 생성 시 안정적인 재시도 메커니즘
+- 🎯 **간단한 API**: 직관적이고 사용하기 쉬운 인터페이스
+- 🤖 **자동 배포**: master 브랜치 푸시 시 자동 태그 생성 및 배포
+
 ## 📦 설치
 
 ```bash
 go get github.com/zkfmapf123/dynamoGORM
+```
+
+### 특정 버전 설치
+
+```bash
+# 최신 버전
+go get github.com/zkfmapf123/dynamoGORM@latest
+
+# 특정 버전
+go get github.com/zkfmapf123/dynamoGORM@v1.0.0
 ```
 
 ## 🔧 설정
@@ -25,6 +45,8 @@ export AWS_ACCESS_KEY_ID=your_access_key
 export AWS_SECRET_ACCESS_KEY=your_secret_key
 export AWS_REGION=ap-northeast-2
 ```
+
+3. **IAM 역할** (EC2, Lambda 등에서 사용)
 
 ## 📖 사용 예시
 
