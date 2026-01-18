@@ -16,7 +16,7 @@ DynamoDB Single Table Design을 위한 Go 라이브러리
 ## 설치
 
 ```bash
-go get github.com/zkfmapf123/go-ddb
+go get github.com/zkfmapf123/gdrm
 ```
 
 ## 빠른 시작
@@ -31,7 +31,7 @@ import (
     "github.com/aws/aws-sdk-go-v2/config"
     "github.com/aws/aws-sdk-go-v2/service/dynamodb"
     "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-    goddb "github.com/zkfmapf123/go-ddb"
+    gdrm "github.com/zkfmapf123/gdrm"
 )
 
 type User struct {
@@ -47,10 +47,10 @@ func main() {
     dynamoClient := dynamodb.NewFromConfig(cfg)
 
     // 클라이언트 생성
-    client := goddb.NewDDB(dynamoClient)
+    client := gdrm.NewDDB(dynamoClient)
 
     // 테이블 설정
-    client.AddTable("my_table", goddb.DDBTableParams{
+    client.AddTable("my_table", gdrm.DDBTableParams{
         IsCreate:        true,
         IsPK:            true,
         PkAttributeType: types.ScalarAttributeTypeS,
@@ -71,7 +71,7 @@ func main() {
 
     // 데이터 조회
     item, _ := client.FindByKey("my_table", "USER#123", "#PROFILE")
-    user := goddb.MarshalMap[User](item)
+    user := gdrm.MarshalMap[User](item)
 
     log.Printf("Name: %s, Age: %d", user.Name, user.Age)
 }
@@ -118,7 +118,7 @@ if err != nil {
     log.Fatal(err)
 }
 
-user := goddb.MarshalMap[User](item)
+user := gdrm.MarshalMap[User](item)
 ```
 
 ### Expression을 사용한 조회
@@ -129,7 +129,7 @@ items, err := client.FindByKeyUseExpression(
     "TEAM#DEV",
     "",
     100,
-    goddb.RangeParams{
+    gdrm.RangeParams{
         KeyConditionExpression: "PK = :pk",
         ExpressionAttributeValues: map[string]types.AttributeValue{
             ":pk": &types.AttributeValueMemberS{Value: "TEAM#DEV"},
@@ -137,7 +137,7 @@ items, err := client.FindByKeyUseExpression(
     },
 )
 
-users := goddb.MarshalMaps[User](items)
+users := gdrm.MarshalMaps[User](items)
 ```
 
 ### begins_with 사용
@@ -148,7 +148,7 @@ items, err := client.FindByKeyUseExpression(
     "USER#123",
     "ORDER#",
     50,
-    goddb.RangeParams{
+    gdrm.RangeParams{
         KeyConditionExpression: "PK = :pk AND begins_with(SK, :sk)",
         ExpressionAttributeValues: map[string]types.AttributeValue{
             ":pk": &types.AttributeValueMemberS{Value: "USER#123"},
