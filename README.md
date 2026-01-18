@@ -34,8 +34,10 @@ type User struct {
 }
 
 func main() {
+    ctx := context.Background()
+
     // AWS 설정
-    cfg, _ := config.LoadDefaultConfig(context.Background())
+    cfg, _ := config.LoadDefaultConfig(ctx)
     dynamoClient := dynamodb.NewFromConfig(cfg)
 
     // 클라이언트 생성
@@ -48,13 +50,16 @@ func main() {
         PkAttributeType: types.ScalarAttributeTypeS,
         IsSK:            true,
         SkAttributeType: types.ScalarAttributeTypeS,
+        BillingMode: gdrm.DDBBillingMode{
+            IsOnDemand: true,
+        },
     })
 
     // 테이블 생성
-    client.Start(true)
+    client.Start(ctx, true)
 
     // 데이터 삽입
-    client.Insert("my_table", User{
+    client.Insert(ctx, "my_table", User{
         PK:   "USER#123",
         SK:   "#PROFILE",
         Name: "tom",
@@ -62,7 +67,7 @@ func main() {
     })
 
     // 데이터 조회
-    item, _ := client.FindByKey("my_table", "USER#123", "#PROFILE")
+    item, _ := client.FindByKey(ctx, "my_table", "USER#123", "#PROFILE")
     user := gdrm.MarshalMap[User](item)
 
     log.Printf("Name: %s, Age: %d", user.Name, user.Age)
@@ -77,21 +82,21 @@ func main() {
 |------|------|
 | `NewDDB(client)` | DynamoDB 클라이언트 생성 |
 | `AddTable(name, params)` | 테이블 설정 추가 |
-| `Start(isCreate)` | 테이블 생성 시작 |
+| `Start(ctx, isCreate)` | 테이블 생성 시작 |
 
 ### Insert Functions
 
 | 함수 | 설명 |
 |------|------|
-| `Insert(tableName, item)` | 단건 삽입 (PK 중복 체크) |
+| `Insert(ctx, tableName, item)` | 단건 삽입 (PK 중복 체크) |
 | `InsertBatch(tableName, items)` | 배치 삽입 (25개씩 자동 분할) |
 
 ### Select Functions
 
 | 함수 | 설명 |
 |------|------|
-| `FindByKey(tableName, pk, sk)` | PK/SK로 단건 조회 |
-| `FindByKeyUseExpression(tableName, pk, sk, limit, params)` | Expression 조건부 조회 |
+| `FindByKey(ctx, tableName, pk, sk)` | PK/SK로 단건 조회 |
+| `FindByKeyUseExpression(tableName, limit, params)` | Expression 조건부 조회 |
 
 ### Marshal Functions
 
@@ -105,7 +110,9 @@ func main() {
 ### 단건 조회
 
 ```go
-item, err := client.FindByKey("my_table", "USER#123", "#PROFILE")
+ctx := context.Background()
+
+item, err := client.FindByKey(ctx, "my_table", "USER#123", "#PROFILE")
 if err != nil {
     log.Fatal(err)
 }
@@ -118,8 +125,6 @@ user := gdrm.MarshalMap[User](item)
 ```go
 items, err := client.FindByKeyUseExpression(
     "my_table",
-    "TEAM#DEV",
-    "",
     100,
     gdrm.RangeParams{
         KeyConditionExpression: "PK = :pk",
@@ -137,8 +142,6 @@ users := gdrm.MarshalMaps[User](items)
 ```go
 items, err := client.FindByKeyUseExpression(
     "my_table",
-    "USER#123",
-    "ORDER#",
     50,
     gdrm.RangeParams{
         KeyConditionExpression: "PK = :pk AND begins_with(SK, :sk)",
@@ -190,8 +193,6 @@ SK = 세부 항목 (파일)
 ## Todo
 
 - [ ] Backoff Limiter 추가 (Rate Limit)
-- [ ] Update 함수 추가
-- [ ] Delete 함수 추가
 - [ ] GSI 지원
 - [ ] Transaction 지원
 

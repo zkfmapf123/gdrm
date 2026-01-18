@@ -144,7 +144,9 @@ client := gdrm.NewDDB(dynamoClient)</code></pre>
                         <article class="func-doc" id="Start">
                             <h4>Start</h4>
                             <p class="func-desc">등록된 테이블들을 생성합니다.</p>
-                            <pre class="code-block"><code>err := client.Start(true)  // true: 테이블 생성
+                            <pre class="code-block"><code>ctx := context.Background()
+
+err := client.Start(ctx, true)  // true: 테이블 생성
 if err != nil {
     log.Fatal(err)
 }</code></pre>
