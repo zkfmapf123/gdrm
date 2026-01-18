@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>go-ddb - DynamoDB Single Table Design Library</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="nav-logo">
+                <span class="logo-icon">⚡</span>
+                go-ddb
+            </a>
+            <ul class="nav-menu">
+                <li><a href="#installation">설치</a></li>
+                <li><a href="#docs">문서</a></li>
+                <li><a href="https://github.com/zkfmapf123/go-ddb" target="_blank">GitHub</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-content">
+            <h1 class="hero-title">go-ddb</h1>
+            <p class="hero-subtitle">
+                DynamoDB Single Table Design을 위한 Go 라이브러리.<br>
+                심플하고 직관적인 API로 DynamoDB를 쉽게 다루세요.
+            </p>
+            <div class="hero-buttons">
+                <a href="#docs" class="btn btn-primary">문서 보기</a>
+                <a href="https://github.com/zkfmapf123/go-ddb" target="_blank" class="btn btn-secondary">GitHub</a>
+            </div>
+        </div>
+    </header>
+
+    <section class="playground" id="playground">
+        <div class="container">
+            <h2 class="section-title">코드 플레이그라운드</h2>
+            <p class="section-desc">go-ddb의 사용 예제를 확인하세요.</p>
+            
+            <div class="playground-container">
+                <div class="playground-tabs">
+                    <button class="tab-btn active" data-tab="client">Client 생성</button>
+                    <button class="tab-btn" data-tab="insert">Insert</button>
+                    <button class="tab-btn" data-tab="select">Select</button>
+                    <button class="tab-btn" data-tab="marshal">Marshal</button>
+                </div>
+                
+                <div class="playground-content">
+                    <div class="code-panel">
+                        <div class="code-header">
+                            <span class="code-lang">Go</span>
+                            <button class="copy-btn" onclick="copyCode()">복사</button>
+                        </div>
+                        <pre class="code-block"><code id="code-display"></code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="docs" id="docs">
+        <div class="container">
+            <h2 class="section-title">문서</h2>
+            <p class="section-desc">go-ddb의 모든 함수와 사용법을 확인하세요.</p>
+
+            <div class="docs-layout">
+                <aside class="docs-sidebar">
+                    <h3>목차</h3>
+                    <nav class="toc">
+                        <div class="toc-group">
+                            <h4>Client Functions</h4>
+                            <ul>
+                                <li><a href="#NewDDB">NewDDB</a></li>
+                                <li><a href="#AddTable">AddTable</a></li>
+                                <li><a href="#Start">Start</a></li>
+                            </ul>
+                        </div>
+                        <div class="toc-group">
+                            <h4>Insert Functions</h4>
+                            <ul>
+                                <li><a href="#Insert">Insert</a></li>
+                                <li><a href="#InsertBatch">InsertBatch</a></li>
+                            </ul>
+                        </div>
+                        <div class="toc-group">
+                            <h4>Select Functions</h4>
+                            <ul>
+                                <li><a href="#FindByKey">FindByKey</a></li>
+                                <li><a href="#FindByKeyUseExpression">FindByKeyUseExpression</a></li>
+                            </ul>
+                        </div>
+                        <div class="toc-group">
+                            <h4>Marshal Functions</h4>
+                            <ul>
+                                <li><a href="#MarshalMap">MarshalMap</a></li>
+                                <li><a href="#MarshalMaps">MarshalMaps</a></li>
+                            </ul>
+                        </div>
+                    </nav>
+                </aside>
+
+                <main class="docs-content">
+                    <!-- Client Functions -->
+                    <div class="docs-section">
+                        <h3>Client Functions</h3>
+                        
+                        <article class="func-doc" id="NewDDB">
+                            <h4>NewDDB</h4>
+                            <p class="func-desc">DynamoDB 클라이언트를 생성합니다.</p>
+                            <pre class="code-block"><code>import (
+    "github.com/aws/aws-sdk-go-v2/config"
+    "github.com/aws/aws-sdk-go-v2/service/dynamodb"
+    goddb "github.com/zkfmapf123/go-ddb"
+)
+
+cfg, _ := config.LoadDefaultConfig(context.Background())
+dynamoClient := dynamodb.NewFromConfig(cfg)
+
+client := goddb.NewDDB(dynamoClient)</code></pre>
+                        </article>
+
+                        <article class="func-doc" id="AddTable">
+                            <h4>AddTable</h4>
+                            <p class="func-desc">테이블 설정을 추가합니다. 체이닝 방식을 지원합니다.</p>
+                            <pre class="code-block"><code>client.AddTable("my_table", goddb.DDBTableParams{
+    IsCreate:        true,
+    IsPK:            true,
+    PkAttributeType: types.ScalarAttributeTypeS,
+    IsSK:            true,
+    SkAttributeType: types.ScalarAttributeTypeS,
+    BillingMode: goddb.DDBBillingMode{
+        // OnDemand 또는 Provisioned 설정
+    },
+})</code></pre>
+                        </article>
+
+                        <article class="func-doc" id="Start">
+                            <h4>Start</h4>
+                            <p class="func-desc">등록된 테이블들을 생성합니다.</p>
+                            <pre class="code-block"><code>err := client.Start(true)  // true: 테이블 생성
+if err != nil {
+    log.Fatal(err)
+}</code></pre>
+                        </article>
+                    </div>
+
+                    <!-- Insert Functions -->
+                    <div class="docs-section">
+                        <h3>Insert Functions</h3>
+
+                        <article class="func-doc" id="Insert">
+                            <h4>Insert</h4>
+                            <p class="func-desc">단건 아이템을 삽입합니다. PK 중복 시 에러를 반환합니다.</p>
+                            <pre class="code-block"><code>type User struct {
+    PK   string `dynamodbav:"PK"`
+    SK   string `dynamodbav:"SK"`
+    Name string `dynamodbav:"Name"`
+    Age  int    `dynamodbav:"Age"`
+}
+
+err := client.Insert("my_table", User{
+    PK:   "USER#123",
+    SK:   "#PROFILE",
+    Name: "tom",
+    Age:  32,
+})</code></pre>
+                        </article>
+
+                        <article class="func-doc" id="InsertBatch">
+                            <h4>InsertBatch</h4>
+                            <p class="func-desc">여러 아이템을 배치로 삽입합니다. 25개씩 자동 분할됩니다.</p>
+                            <pre class="code-block"><code>users := []any{
+    User{PK: "USER#1", SK: "#PROFILE", Name: "tom", Age: 32},
+    User{PK: "USER#2", SK: "#PROFILE", Name: "jane", Age: 28},
+    User{PK: "USER#3", SK: "#PROFILE", Name: "mike", Age: 30},
+}
+
+err := client.InsertBatch("my_table", users)</code></pre>
+                        </article>
+                    </div>
+
+                    <!-- Select Functions -->
+                    <div class="docs-section">
+                        <h3>Select Functions</h3>
+
+                        <article class="func-doc" id="FindByKey">
+                            <h4>FindByKey</h4>
+                            <p class="func-desc">PK와 SK로 단건 아이템을 조회합니다.</p>
+                            <pre class="code-block"><code>item, err := client.FindByKey("my_table", "USER#123", "#PROFILE")
+if err != nil {
+    log.Fatal(err)
+}
+
+// MarshalMap으로 변환
+user := goddb.MarshalMap[User](item)</code></pre>
+                        </article>
+
+                        <article class="func-doc" id="FindByKeyUseExpression">
+                            <h4>FindByKeyUseExpression</h4>
+                            <p class="func-desc">Expression을 사용하여 조건부 조회를 수행합니다.</p>
+                            <pre class="code-block"><code>items, err := client.FindByKeyUseExpression(
+    "my_table",
+    "TEAM#DEV",
+    "",
+    100,  // limit
+    goddb.RangeParams{
+        KeyConditionExpression: "PK = :pk",
+        ExpressionAttributeValues: map[string]types.AttributeValue{
+            ":pk": &types.AttributeValueMemberS{Value: "TEAM#DEV"},
+        },
+    },
+)
+
+// begins_with 사용 예시
+items, err := client.FindByKeyUseExpression(
+    "my_table",
+    "USER#123",
+    "ORDER#",
+    50,
+    goddb.RangeParams{
+        KeyConditionExpression: "PK = :pk AND begins_with(SK, :sk)",
+        ExpressionAttributeValues: map[string]types.AttributeValue{
+            ":pk": &types.AttributeValueMemberS{Value: "USER#123"},
+            ":sk": &types.AttributeValueMemberS{Value: "ORDER#"},
+        },
+    },
+)</code></pre>
+                        </article>
+                    </div>
+
+                    <!-- Marshal Functions -->
+                    <div class="docs-section">
+                        <h3>Marshal Functions</h3>
+
+                        <article class="func-doc" id="MarshalMap">
+                            <h4>MarshalMap[T any]</h4>
+                            <p class="func-desc">DynamoDB 결과를 지정한 타입으로 변환합니다.</p>
+                            <pre class="code-block"><code>item, _ := client.FindByKey("my_table", "USER#123", "#PROFILE")
+
+// 제네릭을 사용한 타입 변환
+user := goddb.MarshalMap[User](item)
+
+fmt.Println(user.Name)  // "tom"
+fmt.Println(user.Age)   // 32</code></pre>
+                        </article>
+
+                        <article class="func-doc" id="MarshalMaps">
+                            <h4>MarshalMaps[T any]</h4>
+                            <p class="func-desc">여러 DynamoDB 결과를 지정한 타입 슬라이스로 변환합니다.</p>
+                            <pre class="code-block"><code>items, _ := client.FindByKeyUseExpression(...)
+
+// 배열 결과 변환
+users := goddb.MarshalMaps[User](items)
+
+for _, user := range users {
+    fmt.Printf("%s: %d세\n", user.Name, user.Age)
+}</code></pre>
+                        </article>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </section>
+
+    <section class="installation" id="installation">
+        <div class="container">
+            <h2 class="section-title">설치 방법</h2>
+            
+            <div class="install-steps">
+                <div class="install-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>Go 모듈 설치</h4>
+                        <pre class="code-block"><code>go get github.com/zkfmapf123/go-ddb</code></pre>
+                    </div>
+                </div>
+                
+                <div class="install-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>코드에서 import</h4>
+                        <pre class="code-block"><code>import goddb "github.com/zkfmapf123/go-ddb"</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>© 2024 go-ddb. MIT License.</p>
+            <div class="footer-links">
+                <a href="https://github.com/zkfmapf123/go-ddb" target="_blank">GitHub</a>
+                <span class="divider">|</span>
+                <a href="#docs">문서</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
