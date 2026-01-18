@@ -60,7 +60,7 @@ func (c DDBClient) Insert(ctx context.Context, tableName string, item any) error
 }
 
 // insert batch (conditino 없음)
-func (c DDBClient) InsertBatch(tableName string, items []any) error {
+func (c DDBClient) InsertBatch(ctx context.Context, tableName string, items []any) error {
 
 	c.trace(DEBUG, "DDBClient.InsertBatch", map[string]any{
 		"tableName": tableName,
@@ -97,7 +97,7 @@ func (c DDBClient) InsertBatch(tableName string, items []any) error {
 
 		}
 
-		results, err := c.client.BatchWriteItem(context.Background(), &dynamodb.BatchWriteItemInput{
+		results, err := c.client.BatchWriteItem(ctx, &dynamodb.BatchWriteItemInput{
 			RequestItems: map[string][]types.WriteRequest{
 				tableName: writeRequests,
 			},
@@ -115,7 +115,7 @@ func (c DDBClient) InsertBatch(tableName string, items []any) error {
 		retryCount := 0
 		for len(results.UnprocessedItems) > 0 && retryCount < 3 {
 			retryCount++
-			results, err = c.client.BatchWriteItem(context.Background(), &dynamodb.BatchWriteItemInput{
+			results, err = c.client.BatchWriteItem(ctx, &dynamodb.BatchWriteItemInput{
 				RequestItems: results.UnprocessedItems,
 			})
 			if err != nil {

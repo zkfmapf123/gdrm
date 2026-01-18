@@ -59,7 +59,7 @@ type RangeParams struct {
 }
 
 // Expression 을 사용하여 조회
-func (c DDBClient) FindByKeyUseExpression(tableName string, limit int, params RangeParams) ([]map[string]types.AttributeValue, error) {
+func (c DDBClient) FindByKeyUseExpression(ctx context.Context, tableName string, limit int, params RangeParams) ([]map[string]types.AttributeValue, error) {
 
 	c.trace(DEBUG, "DDBClient.FindByKeyUseRange", map[string]any{
 		"tableName":  tableName,
@@ -67,7 +67,7 @@ func (c DDBClient) FindByKeyUseExpression(tableName string, limit int, params Ra
 		"expression": params,
 	})
 
-	res, err := c.client.Query(context.Background(), &dynamodb.QueryInput{
+	res, err := c.client.Query(ctx, &dynamodb.QueryInput{
 		TableName:                 aws.String(tableName),
 		KeyConditionExpression:    aws.String(params.KeyConditionExpression),
 		ExpressionAttributeValues: params.ExpressionAttributeValues,

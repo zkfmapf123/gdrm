@@ -117,7 +117,7 @@ func Test_DDBCreate(t *testing.T) {
 
 	t.Run("5. row batch 추가 여부", func(t *testing.T) {
 
-		err := client.InsertBatch("user_logs_1", []any{
+		err := client.InsertBatch(ctx, "user_logs_1", []any{
 			Message{
 				PK:   "10",
 				SK:   "10",
@@ -253,7 +253,7 @@ func Test_DDBInfo(t *testing.T) {
 	})
 
 	t.Run("4. Data BatchWrite & Select", func(t *testing.T) {
-		err := client.InsertBatch("user_logs_1", []any{
+		err := client.InsertBatch(ctx,"user_logs_1", []any{
 			Message{
 				PK:   "USER#4",
 				SK:   "#PROFILE",
@@ -294,7 +294,7 @@ func Test_DDBInfo(t *testing.T) {
 
 	t.Run("6. 개발팀 조회", func(t *testing.T) {
 
-		items, err := client.FindByKeyUseExpression("user_logs_1", 25, RangeParams{
+		items, err := client.FindByKeyUseExpression(ctx, "user_logs_1", 25, RangeParams{
 			KeyConditionExpression: "PK = :pk",
 			ExpressionAttributeValues: map[string]types.AttributeValue{
 				":pk": &types.AttributeValueMemberS{Value: "GROUP#DEV"},
@@ -310,7 +310,7 @@ func Test_DDBInfo(t *testing.T) {
 
 	t.Run("7. 디자인 팀 조회", func(t *testing.T) {
 
-		items, err := client.FindByKeyUseExpression("user_logs_1", 25, RangeParams{
+		items, err := client.FindByKeyUseExpression(ctx, "user_logs_1", 25, RangeParams{
 			KeyConditionExpression: "PK = :pk",
 			ExpressionAttributeValues: map[string]types.AttributeValue{
 				":pk": &types.AttributeValueMemberS{Value: "GROUP#DESIGN"},
@@ -326,7 +326,7 @@ func Test_DDBInfo(t *testing.T) {
 
 	t.Run("8. 개발팀 중 나이가 제일 어린 사람 조회 (비효율적이지만 테스트를 위해...)", func(t *testing.T) {
 
-		items, err := client.FindByKeyUseExpression("user_logs_1", 25, RangeParams{
+		items, err := client.FindByKeyUseExpression(ctx, "user_logs_1", 25, RangeParams{
 			KeyConditionExpression: "PK = :pk",
 			ExpressionAttributeValues: map[string]types.AttributeValue{
 				":pk": &types.AttributeValueMemberS{Value: "GROUP#DEV"},

@@ -186,7 +186,7 @@ err := client.Insert(ctx, "my_table", User{
     User{PK: "USER#3", SK: "#PROFILE", Name: "mike", Age: 30},
 }
 
-err := client.InsertBatch("my_table", users)</code></pre>
+err := client.InsertBatch(ctx, "my_table", users)</code></pre>
                         </article>
                     </div>
 
@@ -211,7 +211,10 @@ user := gdrm.MarshalMap[User](item)</code></pre>
                         <article class="func-doc" id="FindByKeyUseExpression">
                             <h4>FindByKeyUseExpression</h4>
                             <p class="func-desc">Expression을 사용하여 조건부 조회를 수행합니다.</p>
-                            <pre class="code-block"><code>items, err := client.FindByKeyUseExpression(
+                            <pre class="code-block"><code>ctx := context.Background()
+
+items, err := client.FindByKeyUseExpression(
+    ctx,
     "my_table",
     100,  // limit
     gdrm.RangeParams{
@@ -223,7 +226,8 @@ user := gdrm.MarshalMap[User](item)</code></pre>
 )
 
 // begins_with 사용 예시
-items, err := client.FindByKeyUseExpression(
+items, err = client.FindByKeyUseExpression(
+    ctx,
     "my_table",
     50,
     gdrm.RangeParams{

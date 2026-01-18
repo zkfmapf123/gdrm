@@ -89,14 +89,14 @@ func main() {
 | 함수 | 설명 |
 |------|------|
 | `Insert(ctx, tableName, item)` | 단건 삽입 (PK 중복 체크) |
-| `InsertBatch(tableName, items)` | 배치 삽입 (25개씩 자동 분할) |
+| `InsertBatch(ctx, tableName, items)` | 배치 삽입 (25개씩 자동 분할) |
 
 ### Select Functions
 
 | 함수 | 설명 |
 |------|------|
 | `FindByKey(ctx, tableName, pk, sk)` | PK/SK로 단건 조회 |
-| `FindByKeyUseExpression(tableName, limit, params)` | Expression 조건부 조회 |
+| `FindByKeyUseExpression(ctx, tableName, limit, params)` | Expression 조건부 조회 |
 
 ### Marshal Functions
 
@@ -123,7 +123,10 @@ user := gdrm.MarshalMap[User](item)
 ### Expression을 사용한 조회
 
 ```go
+ctx := context.Background()
+
 items, err := client.FindByKeyUseExpression(
+    ctx,
     "my_table",
     100,
     gdrm.RangeParams{
@@ -140,7 +143,10 @@ users := gdrm.MarshalMaps[User](items)
 ### begins_with 사용
 
 ```go
+ctx := context.Background()
+
 items, err := client.FindByKeyUseExpression(
+    ctx,
     "my_table",
     50,
     gdrm.RangeParams{
@@ -156,13 +162,15 @@ items, err := client.FindByKeyUseExpression(
 ### 배치 삽입
 
 ```go
+ctx := context.Background()
+
 users := []any{
     User{PK: "USER#1", SK: "#PROFILE", Name: "tom", Age: 32},
     User{PK: "USER#2", SK: "#PROFILE", Name: "jane", Age: 28},
     User{PK: "USER#3", SK: "#PROFILE", Name: "mike", Age: 30},
 }
 
-err := client.InsertBatch("my_table", users)
+err := client.InsertBatch(ctx, "my_table", users)
 ```
 
 ## Single Table Design

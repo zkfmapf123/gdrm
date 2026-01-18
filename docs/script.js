@@ -63,7 +63,7 @@ users := []any{
     User{PK: "USER#3", SK: "#PROFILE", Name: "mike", Age: 30},
 }
 
-err = client.InsertBatch("my_table", users)`,
+err = client.InsertBatch(ctx, "my_table", users)`,
 
     select: `ctx := context.Background()
 
@@ -75,6 +75,7 @@ if err != nil {
 
 // Expression을 사용한 조회
 items, err := client.FindByKeyUseExpression(
+    ctx,
     "my_table",
     100,  // limit
     gdrm.RangeParams{
@@ -87,6 +88,7 @@ items, err := client.FindByKeyUseExpression(
 
 // begins_with 사용
 items, err = client.FindByKeyUseExpression(
+    ctx,
     "my_table",
     50,
     gdrm.RangeParams{
