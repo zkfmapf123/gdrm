@@ -22,10 +22,13 @@ type Message struct {
 var (
 	ddbClient *dynamodb.Client
 	client    *DDBClient
+	ctx       context.Context
 )
 
 func scenarioBeforeHook() {
-	awsClient, _ := config.LoadDefaultConfig(context.Background(), config.WithRegion("ap-northeast-2"))
+	ctx = context.Background()
+
+	awsClient, _ := config.LoadDefaultConfig(ctx, config.WithRegion("ap-northeast-2"))
 	ddbClient = dynamodb.NewFromConfig(awsClient)
 	client = NewDDB(ddbClient)
 }
@@ -50,7 +53,7 @@ func Test_DDBCreate(t *testing.T) {
 				IsSK:            true,
 				SkAttributeType: types.ScalarAttributeTypeS,
 				BillingMode: DDBBillingMode{
-					isOnDemand: true,
+					IsOnDemand: true,
 				},
 			}).
 			AddTable("user_logs_2", DDBTableParams{
@@ -60,9 +63,9 @@ func Test_DDBCreate(t *testing.T) {
 				IsSK:            true,
 				SkAttributeType: types.ScalarAttributeTypeS,
 				BillingMode: DDBBillingMode{
-					isOnDemand: true,
+					IsOnDemand: true,
 				},
-			}).Start(true)
+			}).Start(ctx, true)
 
 		assert.NoError(t, err)
 		time.Sleep(10 * time.Second)
@@ -80,9 +83,9 @@ func Test_DDBCreate(t *testing.T) {
 				IsSK:            true,
 				SkAttributeType: types.ScalarAttributeTypeS,
 				BillingMode: DDBBillingMode{
-					isOnDemand: true,
+					IsOnDemand: true,
 				},
-			}).Start(true)
+			}).Start(ctx, true)
 
 		assert.Err(t, err)
 
@@ -90,7 +93,7 @@ func Test_DDBCreate(t *testing.T) {
 
 	t.Run("3. row 단건 추가", func(t *testing.T) {
 
-		err := client.Insert("user_logs_1", Message{
+		err := client.Insert(ctx, "user_logs_1", Message{
 			PK:   "1",
 			SK:   "1",
 			Name: "test",
@@ -102,7 +105,7 @@ func Test_DDBCreate(t *testing.T) {
 
 	t.Run("4. row 중복 추가할때 에러 여부", func(t *testing.T) {
 
-		err := client.Insert("user_logs_1", Message{
+		err := client.Insert(ctx, "user_logs_1", Message{
 			PK:   "1",
 			SK:   "1",
 			Name: "test",
@@ -151,9 +154,9 @@ func Test_DDBInfo(t *testing.T) {
 				IsSK:            true,
 				SkAttributeType: types.ScalarAttributeTypeS,
 				BillingMode: DDBBillingMode{
-					isOnDemand: true,
+					IsOnDemand: true,
 				},
-			}).Start(true)
+			}).Start(ctx, true)
 		assert.NoError(t, err)
 		time.Sleep(10 * time.Second)
 	})
@@ -197,7 +200,7 @@ func Test_DDBInfo(t *testing.T) {
 
 		var err error
 
-		err = client.Insert("user_logs_1", Message{
+		err = client.Insert(ctx, "user_logs_1", Message{
 			PK:   "USER#1",
 			SK:   "#PROFILE",
 			Name: "tom",
@@ -206,7 +209,7 @@ func Test_DDBInfo(t *testing.T) {
 
 		assert.NoError(t, err)
 
-		err = client.Insert("user_logs_1", Message{
+		err = client.Insert(ctx, "user_logs_1", Message{
 			PK:   "USER#2",
 			SK:   "#PROFILE",
 			Name: "jerry",
@@ -215,7 +218,7 @@ func Test_DDBInfo(t *testing.T) {
 
 		assert.NoError(t, err)
 
-		err = client.Insert("user_logs_1", Message{
+		err = client.Insert(ctx, "user_logs_1", Message{
 			PK:   "USER#3",
 			SK:   "#PROFILE",
 			Name: "harry",
@@ -224,7 +227,7 @@ func Test_DDBInfo(t *testing.T) {
 
 		assert.NoError(t, err)
 
-		err = client.Insert("user_logs_1", Message{
+		err = client.Insert(ctx, "user_logs_1", Message{
 			PK:   "GROUP#DEV",
 			SK:   "USER#1",
 			Name: "harry",
@@ -232,7 +235,7 @@ func Test_DDBInfo(t *testing.T) {
 
 		assert.NoError(t, err)
 
-		err = client.Insert("user_logs_1", Message{
+		err = client.Insert(ctx, "user_logs_1", Message{
 			PK:   "GROUP#DEV",
 			SK:   "USER#2",
 			Name: "jerry",
@@ -240,7 +243,7 @@ func Test_DDBInfo(t *testing.T) {
 
 		assert.NoError(t, err)
 
-		err = client.Insert("user_logs_1", Message{
+		err = client.Insert(ctx, "user_logs_1", Message{
 			PK:   "GROUP#DEV",
 			SK:   "USER#3",
 			Name: "tom",
@@ -278,7 +281,7 @@ func Test_DDBInfo(t *testing.T) {
 	})
 
 	t.Run("5. Data 단건 조회 pk = 1", func(t *testing.T) {
-		item, err := client.FindByKey("user_logs_1", "USER#1", "#PROFILE")
+		item, err := client.FindByKey(ctx, "user_logs_1", "USER#1", "#PROFILE")
 		assert.NoError(t, err)
 
 		result := MarshalMap[Message](item)
@@ -291,7 +294,7 @@ func Test_DDBInfo(t *testing.T) {
 
 	t.Run("6. 개발팀 조회", func(t *testing.T) {
 
-		items, err := client.FindByKeyUseExpression("user_logs_1", "GROUP#DEV", "", 25, RangeParams{
+		items, err := client.FindByKeyUseExpression("user_logs_1", 25, RangeParams{
 			KeyConditionExpression: "PK = :pk",
 			ExpressionAttributeValues: map[string]types.AttributeValue{
 				":pk": &types.AttributeValueMemberS{Value: "GROUP#DEV"},
@@ -307,7 +310,7 @@ func Test_DDBInfo(t *testing.T) {
 
 	t.Run("7. 디자인 팀 조회", func(t *testing.T) {
 
-		items, err := client.FindByKeyUseExpression("user_logs_1", "GROUP#DESIGN", "", 25, RangeParams{
+		items, err := client.FindByKeyUseExpression("user_logs_1", 25, RangeParams{
 			KeyConditionExpression: "PK = :pk",
 			ExpressionAttributeValues: map[string]types.AttributeValue{
 				":pk": &types.AttributeValueMemberS{Value: "GROUP#DESIGN"},
@@ -323,7 +326,7 @@ func Test_DDBInfo(t *testing.T) {
 
 	t.Run("8. 개발팀 중 나이가 제일 어린 사람 조회 (비효율적이지만 테스트를 위해...)", func(t *testing.T) {
 
-		items, err := client.FindByKeyUseExpression("user_logs_1", "GROUP#DEV", "", 25, RangeParams{
+		items, err := client.FindByKeyUseExpression("user_logs_1", 25, RangeParams{
 			KeyConditionExpression: "PK = :pk",
 			ExpressionAttributeValues: map[string]types.AttributeValue{
 				":pk": &types.AttributeValueMemberS{Value: "GROUP#DEV"},
@@ -337,7 +340,7 @@ func Test_DDBInfo(t *testing.T) {
 		name, age := "", math.MaxInt
 		for _, result := range results {
 
-			userItme, err := client.FindByKey("user_logs_1", result.SK, "#PROFILE")
+			userItme, err := client.FindByKey(ctx, "user_logs_1", result.SK, "#PROFILE")
 			assert.NoError(t, err)
 
 			userResult := MarshalMap[Message](userItme)

@@ -8,8 +8,8 @@ import (
 // DDB
 
 type DDBBillingMode struct {
-	isOnDemand    bool
-	isProvisioned struct {
+	IsOnDemand    bool
+	IsProvisioned struct {
 		ReadCapacityUnits  int
 		WriteCapacityUnits int
 	}

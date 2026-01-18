@@ -10,7 +10,7 @@ import (
 )
 
 // 단건 조회
-func (c DDBClient) FindByKey(tableName, pk, sk string) (map[string]types.AttributeValue, error) {
+func (c DDBClient) FindByKey(ctx context.Context, tableName, pk, sk string) (map[string]types.AttributeValue, error) {
 
 	c.trace(DEBUG, "DDBClient.FindByKey", map[string]any{
 		"tableName": tableName,
@@ -18,7 +18,7 @@ func (c DDBClient) FindByKey(tableName, pk, sk string) (map[string]types.Attribu
 		"sk":        sk,
 	})
 
-	output, err := c.client.GetItem(context.Background(), &dynamodb.GetItemInput{
+	output, err := c.client.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: aws.String(tableName),
 		Key: map[string]types.AttributeValue{
 			"PK": &types.AttributeValueMemberS{Value: pk},
@@ -59,12 +59,10 @@ type RangeParams struct {
 }
 
 // Expression 을 사용하여 조회
-func (c DDBClient) FindByKeyUseExpression(tableName, pk, sk string, limit int, params RangeParams) ([]map[string]types.AttributeValue, error) {
+func (c DDBClient) FindByKeyUseExpression(tableName string, limit int, params RangeParams) ([]map[string]types.AttributeValue, error) {
 
 	c.trace(DEBUG, "DDBClient.FindByKeyUseRange", map[string]any{
 		"tableName":  tableName,
-		"pk":         pk,
-		"sk":         sk,
 		"limit":      limit,
 		"expression": params,
 	})
@@ -80,8 +78,6 @@ func (c DDBClient) FindByKeyUseExpression(tableName, pk, sk string, limit int, p
 	if err != nil {
 		c.trace(ERROR, "DDBClient.FindByKeyUseRange.Query.Error", map[string]any{
 			"tableName":  tableName,
-			"pk":         pk,
-			"sk":         sk,
 			"limit":      limit,
 			"expression": params,
 			"error":      err,

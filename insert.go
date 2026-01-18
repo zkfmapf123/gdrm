@@ -14,7 +14,7 @@ const (
 	BATCH_SIZE = 25
 )
 
-func (c DDBClient) Insert(tableName string, item any) error {
+func (c DDBClient) Insert(ctx context.Context, tableName string, item any) error {
 	c.trace(DEBUG, "DDBClient.Insert", map[string]any{
 		"tableName": tableName,
 		"item":      item,
@@ -30,7 +30,7 @@ func (c DDBClient) Insert(tableName string, item any) error {
 		return err
 	}
 
-	_, err = c.client.PutItem(context.Background(), &dynamodb.PutItemInput{
+	_, err = c.client.PutItem(ctx, &dynamodb.PutItemInput{
 		TableName: aws.String(tableName),
 		Item:      marshalItem,
 
@@ -47,6 +47,8 @@ func (c DDBClient) Insert(tableName string, item any) error {
 			})
 			return err
 		}
+
+		return err
 	}
 
 	c.trace(INFO, "DDBClient.Insert.Success", map[string]any{

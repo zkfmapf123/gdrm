@@ -32,7 +32,7 @@ func (c *DDBClient) AddTable(tableName string, table DDBTableParams) *DDBClient 
 	return c
 }
 
-func (c *DDBClient) Start(isCreateTable bool) error {
+func (c *DDBClient) Start(ctx context.Context, isCreateTable bool) error {
 
 	c.trace(INFO, "DDBClient.Start", map[string]any{
 		"totalTableCount ": len(c.tables),
@@ -56,19 +56,19 @@ func (c *DDBClient) Start(isCreateTable bool) error {
 			}
 
 			// ondemand
-			if params.BillingMode.isOnDemand {
+			if params.BillingMode.IsOnDemand {
 				createTableInput.BillingMode = getBillingMode(params.BillingMode)
 			}
 
-			if !params.BillingMode.isOnDemand {
+			if !params.BillingMode.IsOnDemand {
 				createTableInput.BillingMode = getBillingMode(params.BillingMode)
 				createTableInput.ProvisionedThroughput = &types.ProvisionedThroughput{
-					ReadCapacityUnits:  aws.Int64(int64(params.BillingMode.isProvisioned.ReadCapacityUnits)),
-					WriteCapacityUnits: aws.Int64(int64(params.BillingMode.isProvisioned.WriteCapacityUnits)),
+					ReadCapacityUnits:  aws.Int64(int64(params.BillingMode.IsProvisioned.ReadCapacityUnits)),
+					WriteCapacityUnits: aws.Int64(int64(params.BillingMode.IsProvisioned.WriteCapacityUnits)),
 				}
 			}
 
-			_, err := c.client.CreateTable(context.Background(), createTableInput)
+			_, err := c.client.CreateTable(ctx, createTableInput)
 
 			if err != nil {
 				c.trace(ERROR, "DDBClient.Start.CreateTable.Error", map[string]any{
@@ -151,7 +151,7 @@ func getPKandSK(params DDBTableParams) ([]types.KeySchemaElement, []types.Attrib
 }
 
 func getBillingMode(billingMode DDBBillingMode) types.BillingMode {
-	if billingMode.isOnDemand {
+	if billingMode.IsOnDemand {
 		return types.BillingModePayPerRequest
 	}
 
